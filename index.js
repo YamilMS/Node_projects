@@ -25,28 +25,29 @@ app.get("/api/hello", function (req, res) {
 });
 
 //Create endpoint that display date
-app.get("/api/:date_string?", function(req, res){
-  let dateString = req.params.date_string;
+app.get("/api/:date_string?", function(req, res) {
+    let dateString = req.params.date_string;
 
-  if (!dateString) {
-    const now = new Date();
-    return res.json({unix: now.getTime(), utc: now.toUTCString()});
-  }
+    if (!dateString) {
+        // If no date_string is provided, return the current time
+        const now = new Date();
+        return res.json({unix: now.getTime(), utc: now.toUTCString()});
+    }
 
-  let date;
+    // Initialize date either from string or unix timestamp
+    let date;
+    if (isNaN(dateString)) {
+        date = new Date(dateString);
+    } else {
+        date = new Date(parseInt(dateString));
+    }
 
-  if(isNaN(dateString)){
-    date = new Date(dateString);
-  }else{
-    date = new Date(parseInt(dateString));
-  }
-  
-  if(date.toString() === "Invalid Date"){
-    res.json({error: date.toString()});
-  }else{
-    res.json({unix: date.getTime(), utc: date.toUTCString()});
-  }
-})
+    if (date.toString() === "Invalid Date") {
+        return res.json({ error: "Invalid Date" });
+    } else {
+        return res.json({ unix: date.getTime(), utc: date.toUTCString() });
+    }
+});
 
 
 
