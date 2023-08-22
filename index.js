@@ -24,7 +24,8 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
-//Create endpoint that display date
+
+//CREATE AND ENDPOINT THAT PROVIDE THE UNIX TIMESTAMP AND UTC STRING FOR A GIVEN DATE STRING
 app.get("/api/:date_string?", function(req, res) {
     let dateString = req.params.date_string;
 
@@ -49,9 +50,18 @@ app.get("/api/:date_string?", function(req, res) {
     }
 });
 
+//CREAT AN ENDPOINT THAT PROVIDE THE IP ADDRESS, LANGUAGE, AND USER AGENT FOR THE REQUEST
+app.get("/whoami", (req, res) => {
+  res.json({
+    ipaddress: req.ip,
+    language: req.headers["accept-language"],
+    software: req.headers["user-agent"]
+  });
+})
+
 
 
 // listen for requests :)
-const listener = app.listen(process.env.PORT, function () {
+const listener = app.listen(process.env.PORT  || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
