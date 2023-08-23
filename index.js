@@ -3,7 +3,17 @@
 
 // init project
 const express = require('express');
+
+//Middleware to parse incoming request bodies. 
+const bodyParser = require('body-parser');
+//nedb: A lightweight embedded database. We use this to store our original URLs and their associated short codes.
+const Datastore = require('nedb');
+
+
 const app = express();
+
+//db: This initializes a new NeDB database that's saved to the file urls.db. The autoload: true option makes sure the database loads automatically when we start our server.
+const db = new Datastore({ filename: 'urls.db', autoload: true });
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
@@ -12,6 +22,9 @@ app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 20
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
+
+//tells Express to use body-parser for parsing the body of incoming JSON requests.
+app.use(bodyParser.json());
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
