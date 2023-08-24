@@ -23,8 +23,9 @@ app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 20
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
-//tells Express to use body-parser for parsing the body of incoming JSON requests.
-app.use(bodyParser.json());
+//tells Express to use body-parser for parsing the body of incoming JSON requests
+app.use(bodyParser.urlencoded({ extended: false }));
+
 
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function (req, res) {
@@ -36,7 +37,6 @@ app.get("/", function (req, res) {
 app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
-
 
 //CREATE AND ENDPOINT THAT PROVIDE THE UNIX TIMESTAMP AND UTC STRING FOR A GIVEN DATE STRING
 app.get("/api/:date_string?", function(req, res) {
@@ -72,6 +72,30 @@ app.get("/whoami", (req, res) => {
   });
 })
 
+//This endpoint will return the original URL associated with the short code.
+app.post('/api/shorturl', (req, res) => {
+  const { url } = req.body;
+
+  // Check if URL exists
+  db.findOne({ original: url }, (err, doc) => {
+      if (err) {
+          return res.json({ error: 'An error has occurred' });
+      }
+      
+      // If URL exists, return the short code
+      if (doc) {
+          return res.json({ original_url: doc.original, short_url: doc._id });
+      }
+
+      // If URL does not exist, insert it into the database and return the short code
+      db.insert({ original: url }, (err, newDoc) => {
+          if (err) {
+              return res.json({ error: 'An error has occurred' });
+          }
+          return res.json({original_url: newDoc.original, short_url: newDoc._id });
+      });
+  })
+})
 
 
 // listen for requests :)
