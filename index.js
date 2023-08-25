@@ -97,6 +97,20 @@ app.post('/api/shorturl', (req, res) => {
   })
 })
 
+//This endpoint will return the original URL associated with the short code.
+app.get('/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.findOne({ _id: id }, (err, doc) => {
+        if (doc) {
+            res.redirect(doc.original);
+        } else {
+            res.status(404).send('URL not found');
+        }
+    });
+});
+
+
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT  || 3000, function () {
