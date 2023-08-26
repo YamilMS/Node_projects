@@ -1,8 +1,12 @@
 // index.js
 // where your node app starts
 
+
 // init project
 const express = require('express');
+
+//Validator allow you to check valis url's
+const validator = require('validator');
 
 //Middleware to parse incoming request bodies. 
 const bodyParser = require('body-parser');
@@ -76,6 +80,11 @@ app.get("/whoami", (req, res) => {
 app.post('/api/shorturl', (req, res) => {
   const { url } = req.body;
 
+  // Check if URL is valid through validator
+  if (!validator.isURL(url, { require_protocol: true, require_host: true })) {
+    return res.json({ error: 'invalid url' });
+  }
+
   // Check if URL exists
   db.findOne({ original: url }, (err, doc) => {
       if (err) {
@@ -98,7 +107,7 @@ app.post('/api/shorturl', (req, res) => {
 })
 
 //This endpoint will return the original URL associated with the short code.
-app.get('/:id', (req, res) => {
+app.get('/api/shorturl/:id', (req, res) => {
     const { id } = req.params;
 
     db.findOne({ _id: id }, (err, doc) => {
