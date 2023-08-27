@@ -5,6 +5,8 @@
 // init project
 const express = require('express');
 
+require('dotenv').config()
+
 //Validator allow you to check valis url's
 const validator = require('validator');
 
@@ -119,6 +121,35 @@ app.get('/api/shorturl/:id', (req, res) => {
     });
 });
 
+
+//Endpoint to create a user
+app.post('/api/users', (req, res) => {
+    const { username } = req.body;
+
+    // Check if username exists if not add the user to the database
+    db.findOne({ username }, (err, doc) => {
+        if (err) {
+        return res.status(400).json({ error: 'An error has occurred' });
+        }
+
+        if (doc) {
+        return res.status(400).json({ error: 'username already exists' });
+        }
+
+        if (!username) {
+        return res.status(400).json({ error: 'username is required' });
+        }
+
+        // If username does not exist, insert it into the database and return the short code    
+        db.insert({ username }, (err, newDoc) => {
+            if (err) {
+                return res.status(500).json({ error: 'An error occurred while inserting the user' });
+            }
+            return res.json({ username: newDoc.username, _id: newDoc._id });
+        });
+    })
+  
+})
 
 
 // listen for requests :)
