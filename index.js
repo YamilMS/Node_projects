@@ -151,6 +151,45 @@ app.post('/api/users', (req, res) => {
   
 })
 
+//Endpoint thar return the exercise data and get username of the user by id
+app.post('/api/users/:_id/exercises', (req, res) => {
+    const { _id } = req.params;
+    const { description, duration, date } = req.body;
+
+    // Check if username exists if not add the user to the database
+    db.findOne({ _id }, (err, doc) => {
+        if (err) {
+        return res.status(400).json({ error: 'An error has occurred' });
+        }
+
+        if (!doc) {
+        return res.status(400).json({ error: 'User not found' });
+        }
+
+        if (!description) {
+        return res.status(400).json({ error: 'description is required' });
+        }
+
+        if (!duration) {
+        return res.status(400).json({ error: 'duration is required' });
+        }
+
+        db.insert({date, duration, description }, (err, newDoc) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: 'An error occurred while inserting the exercise' });
+            }
+            return res.json({
+                _id: _id,
+                username: doc.username,
+                date: newDoc.date,
+                duration: newDoc.duration,
+                description: newDoc.description
+            })
+        })
+    })
+})
+
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT  || 3000, function () {
