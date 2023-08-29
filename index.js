@@ -121,6 +121,15 @@ app.get('/api/shorturl/:id', (req, res) => {
     });
 });
 
+//Endpoint to return all users
+app.get('/api/users', (req, res) => {
+    db.find({}, (err, docs) => {
+        if (err) {
+            return res.json({ error: 'An error has occurred' });
+        }
+        return res.json(docs);
+    })
+})
 
 //Endpoint to create a user
 app.post('/api/users', (req, res) => {
@@ -154,7 +163,9 @@ app.post('/api/users', (req, res) => {
 //Endpoint thar return the exercise data and get username of the user by id
 app.post('/api/users/:_id/exercises', (req, res) => {
     const { _id } = req.params;
-    const { description, duration, date } = req.body;
+    let { description, duration, date } = req.body;
+
+    date = date ? new Date(date) : new Date();
 
     // Check if username exists if not add the user to the database
     db.findOne({ _id }, (err, doc) => {
@@ -174,17 +185,70 @@ app.post('/api/users/:_id/exercises', (req, res) => {
         return res.status(400).json({ error: 'duration is required' });
         }
 
-        db.insert({date, duration, description }, (err, newDoc) => {
+        db.insert({date, duration, description, userId: _id, username: doc.username }, (err, newDoc) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({ error: 'An error occurred while inserting the exercise' });
             }
             return res.json({
-                _id: _id,
+                userId: _id,
                 username: doc.username,
                 date: newDoc.date,
                 duration: newDoc.duration,
                 description: newDoc.description
+            })
+        })
+    })
+})
+
+//Endpoint to return the exercise data of the user by id and filter by date
+app.get('/api/users/:_id/logs', (req, res) => {
+    const { _id } = req.params;
+    const { from, to, limit } = req.query;
+
+    db.findOne({ _id }, (err, doc) => {
+        if (err) {
+        return res.status(400).json({ error: 'An error has occurred' });
+        }
+
+        if (!doc) {
+        return res.status(400).json({ error: 'User not found' });
+        }
+
+        db.find({ userId: _id }, (err, docs) => {
+            if (err) {
+                return res.status(400).json({ error: 'An error has occurred' });
+            }
+
+            let exercises = docs.map(exercise => {
+                return {
+                    description: exercise.description,
+                    duration: exercise.duration,
+                    date: exercise.date.toDateString(),
+                }
+            })
+
+            if (from) {
+                exercises = exercises.filter(exercise => {
+                    return new Date(exercise.date) >= new Date(from);
+                })
+            }
+
+            if (to) {
+                exercises = exercises.filter(exercise => {
+                    return new Date(exercise.date) <= new Date(to);
+                })
+            }
+            
+            if (limit) {
+                exercises = exercises.slice(0, limit);
+            }
+
+            res.json({
+                _id: _id,
+                username: doc.username,
+                count: exercises.length,
+                log: exercises
             })
         })
     })

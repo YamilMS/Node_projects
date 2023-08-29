@@ -3,4 +3,5 @@
 {"username":"beca88","_id":"YeH5eZFImjOAsc8P"}
 {"original":"https://www.google.com/","_id":"byYt7s3KR5hQE9Q1"}
 {"original":"https://www.freecodecamp.org/","_id":"r1JU3V1rvZJwLtsm"}
-{"date":"2023-07-09","duration":"60","description":"Gym","_id":"OZc2qTjsxLcCD3Lo"}
+{"date":{"$$date":1688860800000},"duration":"60","description":"Gym","userId":"EqU3QTw7wBIdUlgR","username":"yomstf","_id":"Vb8E4kYE4ZNoQ6mM"}
+{"date":{"$$date":1688947200000},"duration":"60","description":"Run","userId":"EqU3QTw7wBIdUlgR","username":"yomstf","_id":"S7gZRdiTM2Czi33W"}
