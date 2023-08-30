@@ -164,6 +164,7 @@ app.post('/api/users', (req, res) => {
 app.post('/api/users/:_id/exercises', (req, res) => {
     const { _id } = req.params;
     let { description, duration, date } = req.body;
+    duration = parseInt(duration);
 
     date = date ? new Date(date) : new Date();
 
