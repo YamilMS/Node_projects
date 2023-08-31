@@ -122,7 +122,7 @@ app.get('/api/shorturl/:id', (req, res) => {
 });
 
 //Endpoint to return all users
-app.get('/api/users', (req, res) => {
+app.get('/api/users/all', (req, res) => {
     db.find({}, (err, docs) => {
         if (err) {
             return res.json({ error: 'An error has occurred' });
@@ -164,43 +164,44 @@ app.post('/api/users', (req, res) => {
 app.post('/api/users/:_id/exercises', (req, res) => {
     const { _id } = req.params;
     let { description, duration, date } = req.body;
-    duration = parseInt(duration);
 
     date = date ? new Date(date) : new Date();
 
-    // Check if username exists if not add the user to the database
     db.findOne({ _id }, (err, doc) => {
         if (err) {
-        return res.status(400).json({ error: 'An error has occurred' });
+            return res.status(400).json({ error: 'An error has occurred' });
         }
-
         if (!doc) {
-        return res.status(400).json({ error: 'User not found' });
+            return res.status(400).json({ error: 'User not found' });
         }
 
-        if (!description) {
-        return res.status(400).json({ error: 'description is required' });
+        if (!description || !duration) {
+            return res.status(400).json({ error: 'Both description and duration are required' });
         }
 
-        if (!duration) {
-        return res.status(400).json({ error: 'duration is required' });
-        }
-
-        db.insert({date, duration, description, userId: _id, username: doc.username }, (err, newDoc) => {
+        // Assuming you have an exercises field in your user document
+        db.update({ _id }, { $push: { exercises: { description,
+            duration,
+            date } } }, {}, (err, numAffected) => {
             if (err) {
-                console.log(err);
                 return res.status(500).json({ error: 'An error occurred while inserting the exercise' });
             }
-            return res.json({
-                userId: _id,
-                username: doc.username,
-                date: newDoc.date,
-                duration: newDoc.duration,
-                description: newDoc.description
-            })
-        })
-    })
-})
+
+            // Sending back the updated user data
+            return res.json(
+                {
+                    _id,
+                    username: doc.username,
+                    date: date.toDateString(),
+                    duration: parseInt(duration),
+                    description
+                
+                }
+            );
+        });
+    });
+});
+
 
 //Endpoint to return the exercise data of the user by id and filter by date
 app.get('/api/users/:_id/logs', (req, res) => {
@@ -216,18 +217,13 @@ app.get('/api/users/:_id/logs', (req, res) => {
         return res.status(400).json({ error: 'User not found' });
         }
 
-        db.find({ userId: _id }, (err, docs) => {
+        db.find({_id }, (err, docs) => {
             if (err) {
                 return res.status(400).json({ error: 'An error has occurred' });
             }
-
-            let exercises = docs.map(exercise => {
-                return {
-                    description: exercise.description,
-                    duration: exercise.duration,
-                    date: exercise.date.toDateString(),
-                }
-            })
+            
+            let exercises = doc.exercises || [];
+        
 
             if (from) {
                 exercises = exercises.filter(exercise => {
@@ -245,11 +241,17 @@ app.get('/api/users/:_id/logs', (req, res) => {
                 exercises = exercises.slice(0, limit);
             }
 
+            const formattedExercises = exercises.map(exercise => ({
+                description: exercise.description,
+                duration: parseInt(exercise.duration),
+                date: new Date(exercise.date).toDateString(),
+              }));
+
             res.json({
                 _id: _id,
                 username: doc.username,
-                count: exercises.length,
-                log: exercises
+                count: formattedExercises.length,
+                log: formattedExercises
             })
         })
     })
