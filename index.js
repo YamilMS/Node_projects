@@ -1,10 +1,10 @@
 // index.js
 // where your node app starts
 
-
 // init project
 const express = require('express');
 
+//In order to use the .env file, we need to require it.
 require('dotenv').config()
 
 //Validator allow you to check valis url's
@@ -13,14 +13,29 @@ const validator = require('validator');
 //Middleware to parse incoming request bodies. 
 const bodyParser = require('body-parser');
 
+//Multer to upload files
+const multer = require('multer');
+
 //nedb: A lightweight embedded database. We use this to store our original URLs and their associated short codes.
 const Datastore = require('nedb');
 
-
-const app = express();
-
 //db: This initializes a new NeDB database that's saved to the file urls.db. The autoload: true option makes sure the database loads automatically when we start our server.
 const db = new Datastore({ filename: 'urls.db', autoload: true });
+
+// Multer setup
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, './uploads');
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    }
+  });
+  
+const upload = multer({ storage: storage });
+
+// init express app
+const app = express();
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
