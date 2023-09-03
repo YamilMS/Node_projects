@@ -16,11 +16,20 @@ const bodyParser = require('body-parser');
 //Multer to upload files
 const multer = require('multer');
 
+//to works with files
+const fs = require('fs');
+
 //nedb: A lightweight embedded database. We use this to store our original URLs and their associated short codes.
 const Datastore = require('nedb');
 
 //db: This initializes a new NeDB database that's saved to the file urls.db. The autoload: true option makes sure the database loads automatically when we start our server.
 const db = new Datastore({ filename: 'urls.db', autoload: true });
+
+//check if thefolder uploads exist and if not creates it
+const uploadsDir = __dirname + '/uploads';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // Multer setup
 const storage = multer.diskStorage({
@@ -273,6 +282,20 @@ app.get('/api/users/:_id/logs', (req, res) => {
     })
 })
 
+// File upload route
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res) => {
+  const fileData = {
+    name: req.file.originalname,
+    type: req.file.mimetype,
+    size: req.file.size
+  };
+
+  // Insert the file metadata into NeDB
+  db.insert(fileData, (err, newDoc) => {
+    if (err) return res.status(500).send(err);
+    res.json(newDoc);
+  });
+});
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT  || 3000, function () {
